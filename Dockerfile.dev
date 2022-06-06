@@ -1,11 +1,13 @@
-FROM docker.io/library/golang:1.18-bullseye as libpostal-dev
+# This Dockerfile creates a container that can be used for development
+# of the libpostal-rest service. Just build this and then start a
+# container by mapping your GOPATH folder into the container.
+# You can also map the ports to some host ports to access a running
+# service inside the container for testing.
+FROM golang:1.18-bullseye
 
 ARG COMMIT
 ENV COMMIT ${COMMIT:-master}
 ENV DEBIAN_FRONTEND noninteractive
-# update the following to the location and tag for the libpostal-rest package
-# to be used in the build_libpostal_rest.sh script
-ENV LIBPOSTAL_REST_PKG "github.com/uromahn/libpostal-rest@prod-test"
 
 RUN apt-get update && apt-get install -y \
     autoconf automake build-essential curl git libsnappy-dev libtool pkg-config
@@ -24,15 +26,8 @@ RUN ./bootstrap.sh \
   && make -j4 \
   && make install \
   && ldconfig \
-  && pkg-config --cflags libpostal \
-  && useradd -m srvcuser
+  && pkg-config --cflags libpostal
 
-FROM libpostal-dev as libpostal-rest
+RUN useradd -m godev
 
-COPY build_libpostal_rest.sh .
-RUN ./build_libpostal_rest.sh
-
-USER srvcuser
-EXPOSE 8080
-
-CMD /libpostal/workspace/bin/libpostal-rest
+CMD /bin/bash

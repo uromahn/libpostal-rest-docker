@@ -3,4 +3,4 @@ set -e
 
 export GOPATH=/libpostal/workspace
 
-go install github.com/johnlonganecker/libpostal-rest@v1.0.0
+go install $LIBPOSTAL_REST_PKG
